@@ -1,43 +1,38 @@
 # Mini Datadog
+> A production-inspired observability system designed to handle burst traffic, real-time analytics, and anomaly detection using scalable backend patterns.
 
-Mini Datadog is a local observability demo platform with real-time log ingestion, in-memory metrics aggregation, MongoDB persistence, anomaly detection, and a dark React dashboard inspired by Datadog/Grafana.
+Mini Datadog is a real-time observability platform that ingests, processes, and analyzes application logs using a queue-based architecture, sliding window analytics, and anomaly detection.
 
-## Current State
+It is designed to simulate production-grade monitoring systems by handling burst traffic, maintaining low-latency metrics, and detecting abnormal system behavior in real time.
 
-The project currently includes:
+## Key Features
 
-- FastAPI backend for log ingestion and metrics APIs.
-- MongoDB-backed log storage.
-- In-memory queue for ingestion buffering and backpressure simulation.
-- Background worker for batch processing and persistence.
-- Sliding-window error analytics.
-- Rule-based anomaly detection.
-- React + Tailwind CSS frontend dashboard.
-- Chart.js visualizations for error trend and logs per service.
-- Real recent-log table powered by `GET /logs`.
-- Demo traffic generator for showing the dashboard with real ingested data.
+- Real-time log ingestion with queue-based buffering
+- Asynchronous batch processing using background workers
+- Hashmap-based frequency tracking (O(1) updates)
+- Sliding window analytics for recent behavior monitoring
+- Rule-based anomaly detection using dynamic thresholds
+- Pre-aggregated in-memory metrics for low-latency dashboards
+- Failure handling: retries, deduplication, worker restart
+- Interactive dashboard with live system monitoring
 
-No fake frontend fallback data is used. If the backend is offline, the dashboard shows offline/empty states.
+## Implementation Overview
+
+The system includes a FastAPI backend for ingestion, an in-memory queue for buffering, background workers for asynchronous processing, MongoDB for persistence, and a React dashboard for real-time monitoring.
+
+It supports sliding-window analytics, anomaly detection, and live metrics visualization using pre-aggregated in-memory data..
+
+## Why This Project
+
+This project focuses on system design concepts such as decoupling, real-time processing, and scalability rather than simple CRUD operations.
+
+It demonstrates how modern observability systems handle high-volume log ingestion, detect anomalies, and provide low-latency insights.
 
 ## Tech Stack
 
-Backend:
-
-- Python
-- FastAPI
-- Uvicorn
-- PyMongo
-- MongoDB
-- asyncio/threading
-
-Frontend:
-
-- React
-- Vite
-- Tailwind CSS
-- Chart.js
-- react-chartjs-2
-- Axios
+- Backend: FastAPI, MongoDB, asyncio-based worker system  
+- Frontend: React, Tailwind CSS, Chart.js  
+- Architecture: Queue-based asynchronous processing with real-time analytics
 
 ## Architecture
 
@@ -301,3 +296,7 @@ Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/logs?limit=5
 - Add Docker Compose for MongoDB, backend, and frontend.
 - Add automated backend tests and frontend component tests.
 - Add richer statistical anomaly detection such as moving average, z-score, or EWMA.
+
+## Impact
+
+Demonstrates real-world system design concepts including decoupled architectures, efficient data processing, and scalable monitoring systems.
