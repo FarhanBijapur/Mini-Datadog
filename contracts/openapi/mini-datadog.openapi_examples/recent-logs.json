@@ -1,0 +1,52 @@
+{
+  "http-request": {
+    "path": "/logs?limit=5",
+    "method": "GET"
+  },
+  "http-response": {
+    "status": 200,
+    "status-text": "OK",
+    "body": {
+      "logs": [
+        {
+          "timestamp": "2026-07-10T12:00:00+00:00",
+          "service": "checkout-api",
+          "level": "ERROR",
+          "message": "payment authorization failed",
+          "source": "demo-generator",
+          "received_at": "2026-07-10T12:00:01+00:00",
+          "processed_at": "2026-07-10T12:00:02+00:00",
+          "attributes": {
+            "region": "ap-south-1",
+            "latency_ms": 420
+          },
+          "tags": [
+            "demo",
+            "local"
+          ],
+          "trace_id": "trace-123",
+          "span_id": "span-456"
+        },
+        {
+          "timestamp": "2026-07-10T12:01:00+00:00",
+          "service": "payment-worker",
+          "level": "INFO",
+          "message": "worker batch processed",
+          "source": "demo-generator",
+          "received_at": "2026-07-10T12:01:01+00:00",
+          "processed_at": "2026-07-10T12:01:02+00:00",
+          "attributes": {
+            "region": "ap-south-1",
+            "latency_ms": 87
+          },
+          "tags": [
+            "demo",
+            "local"
+          ],
+          "trace_id": null,
+          "span_id": null
+        }
+      ]
+    }
+  }
+}

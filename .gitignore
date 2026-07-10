@@ -13,6 +13,9 @@ env/
 .env
 .env.*
 *.local
+!frontend/.env.example
+!frontend/.env.development
+!frontend/.env.mock
 
 # Logs
 logs/

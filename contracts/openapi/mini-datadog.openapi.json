@@ -1,0 +1,954 @@
+{
+  "components": {
+    "schemas": {
+      "AnomalyDetectionResponse": {
+        "properties": {
+          "anomaly_active": {
+            "examples": [
+              true
+            ],
+            "title": "Anomaly Active",
+            "type": "boolean"
+          },
+          "last_anomaly": {
+            "$ref": "#/components/schemas/LastAnomalyResponse"
+          }
+        },
+        "required": [
+          "last_anomaly",
+          "anomaly_active"
+        ],
+        "title": "AnomalyDetectionResponse",
+        "type": "object"
+      },
+      "ErrorAnalyticsResponse": {
+        "properties": {
+          "current_window_error_count": {
+            "examples": [
+              8
+            ],
+            "minimum": 0.0,
+            "title": "Current Window Error Count",
+            "type": "integer"
+          },
+          "previous_window_error_count": {
+            "examples": [
+              3
+            ],
+            "minimum": 0.0,
+            "title": "Previous Window Error Count",
+            "type": "integer"
+          },
+          "total_error_count": {
+            "examples": [
+              14
+            ],
+            "minimum": 0.0,
+            "title": "Total Error Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_error_count",
+          "current_window_error_count",
+          "previous_window_error_count"
+        ],
+        "title": "ErrorAnalyticsResponse",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "examples": [
+          {
+            "detail": "Ingestion queue is full. Retry later."
+          }
+        ],
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "FrequencyTrackingResponse": {
+        "properties": {
+          "frequency_by_service_level": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "examples": [
+              {
+                "checkout-api:ERROR": 9,
+                "checkout-api:INFO": 39
+              }
+            ],
+            "title": "Frequency By Service Level",
+            "type": "object"
+          }
+        },
+        "required": [
+          "frequency_by_service_level"
+        ],
+        "title": "FrequencyTrackingResponse",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "examples": [
+          {
+            "status": "ok"
+          }
+        ],
+        "properties": {
+          "status": {
+            "examples": [
+              "ok"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "LastAnomalyResponse": {
+        "properties": {
+          "affected_service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "checkout-api"
+            ],
+            "title": "Affected Service"
+          },
+          "current_count": {
+            "examples": [
+              8
+            ],
+            "minimum": 0.0,
+            "title": "Current Count",
+            "type": "integer"
+          },
+          "previous_count": {
+            "examples": [
+              3
+            ],
+            "minimum": 0.0,
+            "title": "Previous Count",
+            "type": "integer"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2026-07-10T12:00:30+00:00"
+            ],
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "required": [
+          "current_count",
+          "previous_count"
+        ],
+        "title": "LastAnomalyResponse",
+        "type": "object"
+      },
+      "LogAcceptedResponse": {
+        "examples": [
+          {
+            "queue_depth": 1,
+            "status": "accepted"
+          }
+        ],
+        "properties": {
+          "queue_depth": {
+            "examples": [
+              1
+            ],
+            "minimum": 0.0,
+            "title": "Queue Depth",
+            "type": "integer"
+          },
+          "status": {
+            "examples": [
+              "accepted"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "queue_depth"
+        ],
+        "title": "LogAcceptedResponse",
+        "type": "object"
+      },
+      "LogIn": {
+        "examples": [
+          {
+            "attributes": {
+              "latency_ms": 420,
+              "region": "ap-south-1"
+            },
+            "level": "ERROR",
+            "message": "payment authorization failed",
+            "service": "checkout-api",
+            "source": "demo-generator",
+            "span_id": "span-456",
+            "tags": [
+              "demo",
+              "local"
+            ],
+            "timestamp": "2026-07-10T12:00:00+00:00",
+            "trace_id": "trace-123"
+          }
+        ],
+        "properties": {
+          "attributes": {
+            "additionalProperties": true,
+            "title": "Attributes",
+            "type": "object"
+          },
+          "level": {
+            "enum": [
+              "DEBUG",
+              "INFO",
+              "WARN",
+              "ERROR"
+            ],
+            "examples": [
+              "INFO",
+              "ERROR",
+              "WARN"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "service": {
+            "examples": [
+              "payments"
+            ],
+            "title": "Service",
+            "type": "string"
+          },
+          "source": {
+            "default": "unknown",
+            "examples": [
+              "checkout-service"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "span_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span Id"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          }
+        },
+        "required": [
+          "service",
+          "level",
+          "message"
+        ],
+        "title": "LogIn",
+        "type": "object"
+      },
+      "MetricsResponse": {
+        "examples": [
+          {
+            "anomaly_detection": {
+              "anomaly_active": true,
+              "last_anomaly": {
+                "affected_service": "checkout-api",
+                "current_count": 8,
+                "previous_count": 3,
+                "timestamp": "2026-07-10T12:00:30+00:00"
+              }
+            },
+            "error_analytics": {
+              "current_window_error_count": 8,
+              "previous_window_error_count": 3,
+              "total_error_count": 14
+            },
+            "frequency_tracking": {
+              "frequency_by_service_level": {
+                "checkout-api:ERROR": 9,
+                "checkout-api:INFO": 39
+              }
+            },
+            "service_level_insights": {
+              "error_count_per_service": {
+                "checkout-api": 9,
+                "payment-worker": 5
+              },
+              "logs_per_service": {
+                "checkout-api": 48,
+                "payment-worker": 31
+              }
+            },
+            "system_throughput": {
+              "db_failures_total": 0,
+              "duplicate_logs_total": 2,
+              "queue_depth": 3,
+              "queue_rejections_total": 0,
+              "total_logs_failed": 1,
+              "total_logs_processed": 118,
+              "total_logs_received": 120,
+              "worker_restarts_total": 0,
+              "worker_status": "running"
+            }
+          }
+        ],
+        "properties": {
+          "anomaly_detection": {
+            "$ref": "#/components/schemas/AnomalyDetectionResponse"
+          },
+          "error_analytics": {
+            "$ref": "#/components/schemas/ErrorAnalyticsResponse"
+          },
+          "frequency_tracking": {
+            "$ref": "#/components/schemas/FrequencyTrackingResponse"
+          },
+          "service_level_insights": {
+            "$ref": "#/components/schemas/ServiceLevelInsightsResponse"
+          },
+          "system_throughput": {
+            "$ref": "#/components/schemas/SystemThroughputResponse"
+          }
+        },
+        "required": [
+          "system_throughput",
+          "error_analytics",
+          "service_level_insights",
+          "frequency_tracking",
+          "anomaly_detection"
+        ],
+        "title": "MetricsResponse",
+        "type": "object"
+      },
+      "RecentLogsResponse": {
+        "examples": [
+          {
+            "logs": [
+              {
+                "attributes": {
+                  "latency_ms": 420,
+                  "region": "ap-south-1"
+                },
+                "level": "ERROR",
+                "message": "payment authorization failed",
+                "processed_at": "2026-07-10T12:00:02+00:00",
+                "received_at": "2026-07-10T12:00:01+00:00",
+                "service": "checkout-api",
+                "source": "demo-generator",
+                "span_id": "span-456",
+                "tags": [
+                  "demo",
+                  "local"
+                ],
+                "timestamp": "2026-07-10T12:00:00+00:00",
+                "trace_id": "trace-123"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "logs": {
+            "items": {
+              "$ref": "#/components/schemas/StoredLog"
+            },
+            "title": "Logs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "logs"
+        ],
+        "title": "RecentLogsResponse",
+        "type": "object"
+      },
+      "ServiceLevelInsightsResponse": {
+        "properties": {
+          "error_count_per_service": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "examples": [
+              {
+                "checkout-api": 9,
+                "payment-worker": 5
+              }
+            ],
+            "title": "Error Count Per Service",
+            "type": "object"
+          },
+          "logs_per_service": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "examples": [
+              {
+                "checkout-api": 48,
+                "payment-worker": 31
+              }
+            ],
+            "title": "Logs Per Service",
+            "type": "object"
+          }
+        },
+        "required": [
+          "logs_per_service",
+          "error_count_per_service"
+        ],
+        "title": "ServiceLevelInsightsResponse",
+        "type": "object"
+      },
+      "StoredLog": {
+        "additionalProperties": true,
+        "examples": [
+          {
+            "attributes": {
+              "latency_ms": 420,
+              "region": "ap-south-1"
+            },
+            "level": "ERROR",
+            "message": "payment authorization failed",
+            "processed_at": "2026-07-10T12:00:02+00:00",
+            "received_at": "2026-07-10T12:00:01+00:00",
+            "service": "checkout-api",
+            "source": "demo-generator",
+            "span_id": "span-456",
+            "tags": [
+              "demo",
+              "local"
+            ],
+            "timestamp": "2026-07-10T12:00:00+00:00",
+            "trace_id": "trace-123"
+          }
+        ],
+        "properties": {
+          "attributes": {
+            "additionalProperties": true,
+            "title": "Attributes",
+            "type": "object"
+          },
+          "level": {
+            "enum": [
+              "DEBUG",
+              "INFO",
+              "WARN",
+              "ERROR"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "processed_at": {
+            "format": "date-time",
+            "title": "Processed At",
+            "type": "string"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "span_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span Id"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          }
+        },
+        "required": [
+          "timestamp",
+          "service",
+          "level",
+          "message",
+          "source",
+          "received_at",
+          "processed_at"
+        ],
+        "title": "StoredLog",
+        "type": "object"
+      },
+      "SystemThroughputResponse": {
+        "properties": {
+          "db_failures_total": {
+            "examples": [
+              0
+            ],
+            "minimum": 0.0,
+            "title": "Db Failures Total",
+            "type": "integer"
+          },
+          "duplicate_logs_total": {
+            "examples": [
+              2
+            ],
+            "minimum": 0.0,
+            "title": "Duplicate Logs Total",
+            "type": "integer"
+          },
+          "queue_depth": {
+            "examples": [
+              3
+            ],
+            "minimum": 0.0,
+            "title": "Queue Depth",
+            "type": "integer"
+          },
+          "queue_rejections_total": {
+            "examples": [
+              0
+            ],
+            "minimum": 0.0,
+            "title": "Queue Rejections Total",
+            "type": "integer"
+          },
+          "total_logs_failed": {
+            "examples": [
+              1
+            ],
+            "minimum": 0.0,
+            "title": "Total Logs Failed",
+            "type": "integer"
+          },
+          "total_logs_processed": {
+            "examples": [
+              118
+            ],
+            "minimum": 0.0,
+            "title": "Total Logs Processed",
+            "type": "integer"
+          },
+          "total_logs_received": {
+            "examples": [
+              120
+            ],
+            "minimum": 0.0,
+            "title": "Total Logs Received",
+            "type": "integer"
+          },
+          "worker_restarts_total": {
+            "examples": [
+              0
+            ],
+            "minimum": 0.0,
+            "title": "Worker Restarts Total",
+            "type": "integer"
+          },
+          "worker_status": {
+            "$ref": "#/components/schemas/WorkerStatus",
+            "examples": [
+              "running"
+            ]
+          }
+        },
+        "required": [
+          "total_logs_received",
+          "total_logs_processed",
+          "total_logs_failed",
+          "queue_rejections_total",
+          "duplicate_logs_total",
+          "db_failures_total",
+          "worker_restarts_total",
+          "queue_depth",
+          "worker_status"
+        ],
+        "title": "SystemThroughputResponse",
+        "type": "object"
+      },
+      "WorkerStatus": {
+        "enum": [
+          "running",
+          "stopped"
+        ],
+        "title": "WorkerStatus",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "Local observability demo API for ingesting logs, reading recent persisted events, and exposing real-time metrics for the React dashboard.",
+    "title": "Mini Datadog",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "description": "Returns a lightweight health signal for local readiness checks.",
+        "operationId": "health_check_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "ok"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "API is healthy."
+          }
+        },
+        "summary": "Check API health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/logs": {
+      "get": {
+        "description": "Returns the most recently processed logs from MongoDB. The response is ordered by processing time descending and wrapped in a `logs` array.",
+        "operationId": "recent_logs_logs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "logs": [
+                    {
+                      "attributes": {
+                        "latency_ms": 420,
+                        "region": "ap-south-1"
+                      },
+                      "level": "ERROR",
+                      "message": "payment authorization failed",
+                      "processed_at": "2026-07-10T12:00:02+00:00",
+                      "received_at": "2026-07-10T12:00:01+00:00",
+                      "service": "checkout-api",
+                      "source": "demo-generator",
+                      "span_id": "span-456",
+                      "tags": [
+                        "demo",
+                        "local"
+                      ],
+                      "timestamp": "2026-07-10T12:00:00+00:00",
+                      "trace_id": "trace-123"
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/RecentLogsResponse"
+                }
+              }
+            },
+            "description": "Recent logs returned successfully."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": [
+                    {
+                      "ctx": {
+                        "ge": 1
+                      },
+                      "input": "0",
+                      "loc": [
+                        "query",
+                        "limit"
+                      ],
+                      "msg": "Input should be greater than or equal to 1",
+                      "type": "greater_than_equal"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "The `limit` query parameter failed validation."
+          }
+        },
+        "summary": "Read recent logs",
+        "tags": [
+          "logs"
+        ]
+      },
+      "post": {
+        "description": "Validates a log event and enqueues it for asynchronous processing. A `202 Accepted` response means the event was accepted into the in-memory ingestion queue, not necessarily persisted yet.",
+        "operationId": "ingest_log_logs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogIn",
+                "examples": [
+                  {
+                    "attributes": {
+                      "latency_ms": 420,
+                      "region": "ap-south-1"
+                    },
+                    "level": "ERROR",
+                    "message": "payment authorization failed",
+                    "service": "checkout-api",
+                    "source": "demo-generator",
+                    "span_id": "span-456",
+                    "tags": [
+                      "demo",
+                      "local"
+                    ],
+                    "timestamp": "2026-07-10T12:00:00+00:00",
+                    "trace_id": "trace-123"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "queue_depth": 1,
+                  "status": "accepted"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/LogAcceptedResponse"
+                }
+              }
+            },
+            "description": "Log event accepted into the ingestion queue."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": [
+                    {
+                      "input": {
+                        "level": "ERROR",
+                        "message": "payment authorization failed"
+                      },
+                      "loc": [
+                        "body",
+                        "service"
+                      ],
+                      "msg": "Field required",
+                      "type": "missing"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "The request body failed FastAPI/Pydantic validation."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Ingestion queue is full. Retry later."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The ingestion queue is full and the client should retry later."
+          }
+        },
+        "summary": "Ingest a log event",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "description": "Returns a real-time observability snapshot assembled from in-memory counters, rolling error windows, service-level frequency tracking, and the current anomaly detection state.",
+        "operationId": "get_metrics_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "anomaly_detection": {
+                    "anomaly_active": true,
+                    "last_anomaly": {
+                      "affected_service": "checkout-api",
+                      "current_count": 8,
+                      "previous_count": 3,
+                      "timestamp": "2026-07-10T12:00:30+00:00"
+                    }
+                  },
+                  "error_analytics": {
+                    "current_window_error_count": 8,
+                    "previous_window_error_count": 3,
+                    "total_error_count": 14
+                  },
+                  "frequency_tracking": {
+                    "frequency_by_service_level": {
+                      "checkout-api:ERROR": 9,
+                      "checkout-api:INFO": 39
+                    }
+                  },
+                  "service_level_insights": {
+                    "error_count_per_service": {
+                      "checkout-api": 9,
+                      "payment-worker": 5
+                    },
+                    "logs_per_service": {
+                      "checkout-api": 48,
+                      "payment-worker": 31
+                    }
+                  },
+                  "system_throughput": {
+                    "db_failures_total": 0,
+                    "duplicate_logs_total": 2,
+                    "queue_depth": 3,
+                    "queue_rejections_total": 0,
+                    "total_logs_failed": 1,
+                    "total_logs_processed": 118,
+                    "total_logs_received": 120,
+                    "worker_restarts_total": 0,
+                    "worker_status": "running"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            },
+            "description": "Metrics snapshot returned successfully."
+          }
+        },
+        "summary": "Read observability metrics",
+        "tags": [
+          "metrics"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Readiness and liveness endpoints.",
+      "name": "health"
+    },
+    {
+      "description": "Log ingestion and recent-log retrieval endpoints.",
+      "name": "logs"
+    },
+    {
+      "description": "Real-time metrics and anomaly detection endpoints.",
+      "name": "metrics"
+    }
+  ]
+}

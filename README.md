@@ -1,43 +1,55 @@
 # Mini Datadog
 
-Mini Datadog is a local observability demo platform with real-time log ingestion, in-memory metrics aggregation, MongoDB persistence, anomaly detection, and a dark React dashboard inspired by Datadog/Grafana.
+Real-time log ingestion and anomaly detection platform with a queue-driven FastAPI backend, MongoDB persistence, in-memory metrics aggregation, and a dark React observability dashboard.
 
-## Current State
+## Features
 
-The project currently includes:
+**Backend**
+- Async log ingestion (`POST /logs`) with Pydantic validation and `202 Accepted` queue semantics
+- Bounded in-memory queue with `429` backpressure on overflow
+- Background worker with batch processing, supervisor restart, and graceful shutdown
+- MongoDB persistence with startup indexes, singleton client, and transient-failure retries
+- Processing engine with O(1) hashmap frequency tracking and 5-minute sliding-window error analytics
+- Rule-based anomaly detection (`current_errors > 2x previous_errors`) with cooldown dedupe
+- Best-effort in-memory deduplication (LRU + TTL)
+- Pre-aggregated `/metrics` snapshot served without DB reads
 
-- FastAPI backend for log ingestion and metrics APIs.
-- MongoDB-backed log storage.
-- In-memory queue for ingestion buffering and backpressure simulation.
-- Background worker for batch processing and persistence.
-- Sliding-window error analytics.
-- Rule-based anomaly detection.
-- React + Tailwind CSS frontend dashboard.
-- Chart.js visualizations for error trend and logs per service.
-- Real recent-log table powered by `GET /logs`.
-- Demo traffic generator for showing the dashboard with real ingested data.
+**Frontend**
+- Enterprise-style dark dashboard (sidebar, KPI cards, charts, recent logs, anomaly panel)
+- Auto-refresh every 3 seconds from live backend APIs
+- Chart.js visualizations: error trend line + logs-per-service bar chart
+- Offline/empty states when the API is unavailable (no fake fallback data)
 
-No fake frontend fallback data is used. If the backend is offline, the dashboard shows offline/empty states.
+**Tooling**
+- OpenAPI contract export and Specmatic provider tests
+- Demo traffic generator for local demos and anomaly triggers
 
 ## Tech Stack
 
-Backend:
+| Layer | Stack |
+|---|---|
+| API | FastAPI, Uvicorn, Pydantic |
+| Storage | MongoDB, PyMongo |
+| Queue / Workers | `queue.Queue`, asyncio worker, batch inserts |
+| Frontend | React, Vite, Tailwind CSS, Chart.js, Axios |
+| Contracts | OpenAPI, Specmatic |
 
-- Python
-- FastAPI
-- Uvicorn
-- PyMongo
-- MongoDB
-- asyncio/threading
+## Project Structure
 
-Frontend:
-
-- React
-- Vite
-- Tailwind CSS
-- Chart.js
-- react-chartjs-2
-- Axios
+```text
+Mini Datadog/
+├── core/                 # config, MongoDB manager, ingestion queue
+├── models/               # Pydantic request/response models
+├── routes/               # /logs, /metrics, /healthz
+├── services/             # worker, processing, storage, metrics, anomaly, dedupe
+├── utils/
+├── scripts/              # demo traffic, OpenAPI export, Specmatic helpers
+├── contracts/openapi/    # exported API contract + examples
+├── frontend/             # React dashboard
+├── main.py
+├── requirements.txt
+└── system_design.md
+```
 
 ## Architecture
 
@@ -51,72 +63,58 @@ FastAPI validation
 In-memory ingestion queue
    |
    v
-Background worker
+Background worker (batch + dedupe + retries)
    |
    v
 Processing engine + anomaly detection
    |
    v
-MongoDB log storage
-```
+MongoDB (logs collection)
 
-Dashboard polling:
-
-```text
 React dashboard
    |
-   +--> GET /metrics every 3 seconds
-   |
-   +--> GET /logs every 3 seconds
+   +--> GET /metrics  (every 3s)
+   +--> GET /logs     (every 3s)
 ```
 
-## Backend API
+See [system_design.md](system_design.md) for scaling strategy, trade-offs, and bottlenecks.
 
-### Health Check
+## API
 
-```http
-GET /healthz
+### `GET /healthz`
+
+```json
+{ "status": "ok" }
 ```
 
-Returns:
+### `POST /logs`
+
+Minimal payload:
 
 ```json
 {
-  "status": "ok"
-}
-```
-
-### Ingest Log
-
-```http
-POST /logs
-```
-
-Example payload:
-
-```json
-{
-  "source": "demo-generator",
-  "service": "checkout-api",
+  "service": "payment-service",
   "level": "ERROR",
-  "message": "payment authorization failed",
-  "attributes": {
-    "region": "ap-south-1",
-    "latency_ms": 420
-  },
-  "tags": ["demo", "local"]
+  "message": "Payment failed"
 }
 ```
 
-Returns `202 Accepted` when the event is queued.
+Full payload supports `source`, `timestamp`, `attributes`, `tags`, `trace_id`, and `span_id`.
 
-### Recent Logs
+Returns `202 Accepted`:
 
-```http
-GET /logs?limit=50
+```json
+{
+  "status": "accepted",
+  "queue_depth": 1
+}
 ```
 
-Returns recent persisted logs from MongoDB:
+Returns `429` when the ingestion queue is full.
+
+### `GET /logs?limit=50`
+
+Returns recent persisted logs from MongoDB (`limit`: 1–200), ordered by `processed_at` descending:
 
 ```json
 {
@@ -124,180 +122,129 @@ Returns recent persisted logs from MongoDB:
 }
 ```
 
-`limit` supports values from `1` to `200`.
+### `GET /metrics`
 
-### Metrics
+Returns a structured observability snapshot:
 
-```http
-GET /metrics
-```
+- `system_throughput` — received/processed/failed, queue depth, worker status, rejections, dedupe, DB failures, worker restarts
+- `error_analytics` — total errors, current/previous 5-minute window counts
+- `service_level_insights` — logs and errors per service
+- `frequency_tracking` — `(service, level)` hashmap counts
+- `anomaly_detection` — `anomaly_active` and `last_anomaly`
 
-Returns:
-
-- System throughput counters.
-- Queue depth and worker status.
-- Error analytics.
-- Logs per service.
-- Error count per service.
-- Frequency by service/level.
-- Anomaly state.
+Interactive docs: `http://127.0.0.1:8000/docs`
 
 ## Run Locally
 
-### 1. Start MongoDB
+### Prerequisites
 
-MongoDB must be running on:
+- Python 3.11+
+- Node.js 20+
+- MongoDB at `mongodb://localhost:27017`
 
-```text
-mongodb://localhost:27017
-```
+Default DB/collection: `mini_datadog.logs`
 
-The backend uses database `mini_datadog` and collection `logs` by default.
-
-### 2. Install Backend Dependencies
-
-From the project root:
+### Backend
 
 ```powershell
 cd "D:\Mini Datadog"
 pip install -r requirements.txt
-```
-
-### 3. Start Backend
-
-```powershell
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-Backend docs:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Health check:
-
-```text
-http://127.0.0.1:8000/healthz
-```
-
-### 4. Install Frontend Dependencies
-
-From the frontend folder:
+### Frontend
 
 ```powershell
 cd "D:\Mini Datadog\frontend"
 npm install
-```
-
-### 5. Start Frontend
-
-```powershell
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Open:
+Open: `http://127.0.0.1:5173`
+
+Optional API override:
 
 ```text
-http://127.0.0.1:5173
+VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 ## Demo Workflow
 
-Use the demo traffic generator to send real log events into the backend.
-
-Normal traffic:
+Generate traffic from the CLI:
 
 ```powershell
 cd "D:\Mini Datadog"
 python scripts\generate_demo_traffic.py --count 80 --delay 0.03
 ```
 
-Error-heavy spike:
+Trigger an error spike (may activate anomaly detection):
 
 ```powershell
 python scripts\generate_demo_traffic.py --count 40 --delay 0.02 --spike
 ```
 
-The dashboard refreshes every 3 seconds. You should see:
+Anomaly rule: `current_window_errors > 2 * previous_window_errors` (requires `previous > 0`).
 
-- Total Logs increase.
-- Error Count increase.
-- Error Rate update.
-- Queue Depth change briefly during ingestion.
-- Error trend line update.
-- Logs per service bar chart update.
-- Recent logs table populate from MongoDB.
+You can also ingest logs via Swagger UI (`/docs`) or `POST /logs` directly.
 
-Anomaly detection may not activate immediately. The current rule requires the current error window to be more than 2x the previous window, and the previous window must be greater than zero.
+## Dashboard
 
-## Frontend Dashboard
+The React UI includes:
 
-The dashboard includes:
+- **Header** — live/disconnected status and last refresh time
+- **KPI row** — Total Logs, Error Count, Error Rate, Queue Depth
+- **Charts** — Error Trend (rolling window) and Logs per Service (top 8)
+- **Recent Logs** — live table from `GET /logs`
+- **Anomaly Panel** — active state, window comparison, worker status, last anomaly
 
-- Fixed dark sidebar navigation.
-- Top KPI cards:
-  - Total Logs
-  - Error Count
-  - Error Rate
-  - Queue Depth
-- Side-by-side charts:
-  - Error Trend
-  - Logs per Service
-- Bottom operational panels:
-  - Recent Logs
-  - Anomaly Panel
+Polling interval: **3 seconds**.
 
-The dashboard reads from:
+## Contract Testing
 
-```text
-http://localhost:8000/metrics
-http://localhost:8000/logs
-```
-
-## Useful Commands
-
-Frontend lint:
+Export the OpenAPI contract:
 
 ```powershell
-cd "D:\Mini Datadog\frontend"
+python scripts\export_openapi.py
+```
+
+Run Specmatic provider tests (backend must be running):
+
+```powershell
+.\scripts\run_specmatic_provider_tests.ps1
+```
+
+Contract files live in `contracts/openapi/`.
+
+## Development Commands
+
+```powershell
+# Frontend lint / build
+cd frontend
 npm run lint
-```
-
-Frontend production build:
-
-```powershell
 npm run build
-```
 
-Python syntax check:
+# Python syntax check
+cd ..
+python -m py_compile main.py routes\logs.py routes\metrics.py
 
-```powershell
-cd "D:\Mini Datadog"
-python -m py_compile routes\logs.py services\storage_service.py scripts\generate_demo_traffic.py
-```
-
-Quick API checks:
-
-```powershell
+# Quick API checks
 Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/metrics
-Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/logs?limit=5
+Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8000/logs?limit=5"
 ```
 
-## Notes and Limitations
+## Limitations
 
-- Metrics are held in memory, so counters reset when the backend restarts.
-- The queue is in memory and simulates a broker; Kafka/RabbitMQ would be a production replacement.
-- MongoDB stores processed logs, but metrics are served from pre-aggregated in-memory state for low latency.
-- Dedupe is best-effort and process-local.
-- Anomaly detection is rule-based and intentionally simple for this demo.
+- Metrics and queue state are in-memory and reset on backend restart
+- Queue is process-local (Kafka would replace this in production)
+- Dedupe is best-effort and not shared across instances
+- Anomaly detection is rule-based (no seasonality or statistical modeling yet)
+- Dashboard polls REST endpoints (no WebSocket/SSE streaming)
 
 ## Future Improvements
 
-- Replace in-memory queue with Kafka.
-- Add persistent metrics time-series storage.
-- Add dashboard filters by service, level, and time range.
-- Add WebSocket/SSE streaming instead of polling.
-- Add Docker Compose for MongoDB, backend, and frontend.
-- Add automated backend tests and frontend component tests.
-- Add richer statistical anomaly detection such as moving average, z-score, or EWMA.
+- Kafka (or similar) for distributed buffering
+- Horizontal worker scaling and MongoDB sharding
+- Persistent metrics time-series storage
+- WebSocket/SSE live updates
+- Statistical / ML anomaly detection
+- Docker Compose for one-command local setup

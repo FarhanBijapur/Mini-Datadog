@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from core.database import mongo_manager
+from models.health_model import HealthResponse
 from routes.logs import router as logs_router
 from routes.metrics import router as metrics_router
 from services.worker import log_worker
@@ -30,8 +31,26 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
+    description=(
+        "Local observability demo API for ingesting logs, reading recent persisted "
+        "events, and exposing real-time metrics for the React dashboard."
+    ),
     version="1.0.0",
     lifespan=lifespan,
+    openapi_tags=[
+        {
+            "name": "health",
+            "description": "Readiness and liveness endpoints.",
+        },
+        {
+            "name": "logs",
+            "description": "Log ingestion and recent-log retrieval endpoints.",
+        },
+        {
+            "name": "metrics",
+            "description": "Real-time metrics and anomaly detection endpoints.",
+        },
+    ],
 )
 
 app.add_middleware(
@@ -46,6 +65,24 @@ app.include_router(logs_router)
 app.include_router(metrics_router)
 
 
-@app.get("/healthz")
+@app.get(
+    "/healthz",
+    response_model=HealthResponse,
+    tags=["health"],
+    summary="Check API health",
+    description="Returns a lightweight health signal for local readiness checks.",
+    responses={
+        200: {
+            "description": "API is healthy.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "ok",
+                    }
+                }
+            },
+        }
+    },
+)
 async def health_check() -> dict:
     return {"status": "ok"}

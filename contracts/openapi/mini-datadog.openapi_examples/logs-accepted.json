@@ -1,0 +1,31 @@
+{
+  "http-request": {
+    "path": "/logs",
+    "method": "POST",
+    "body": {
+      "source": "demo-generator",
+      "service": "checkout-api",
+      "level": "ERROR",
+      "message": "payment authorization failed",
+      "timestamp": "2026-07-10T12:00:00+00:00",
+      "attributes": {
+        "region": "ap-south-1",
+        "latency_ms": 420
+      },
+      "tags": [
+        "demo",
+        "local"
+      ],
+      "trace_id": "trace-123",
+      "span_id": "span-456"
+    }
+  },
+  "http-response": {
+    "status": 202,
+    "status-text": "Accepted",
+    "body": {
+      "status": "accepted",
+      "queue_depth": 1
+    }
+  }
+}

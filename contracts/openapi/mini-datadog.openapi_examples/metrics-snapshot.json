@@ -1,0 +1,53 @@
+{
+  "http-request": {
+    "path": "/metrics",
+    "method": "GET"
+  },
+  "http-response": {
+    "status": 200,
+    "status-text": "OK",
+    "body": {
+      "system_throughput": {
+        "total_logs_received": 120,
+        "total_logs_processed": 118,
+        "total_logs_failed": 1,
+        "queue_rejections_total": 0,
+        "duplicate_logs_total": 2,
+        "db_failures_total": 0,
+        "worker_restarts_total": 0,
+        "queue_depth": 3,
+        "worker_status": "running"
+      },
+      "error_analytics": {
+        "total_error_count": 14,
+        "current_window_error_count": 8,
+        "previous_window_error_count": 3
+      },
+      "service_level_insights": {
+        "logs_per_service": {
+          "checkout-api": 48,
+          "payment-worker": 31
+        },
+        "error_count_per_service": {
+          "checkout-api": 9,
+          "payment-worker": 5
+        }
+      },
+      "frequency_tracking": {
+        "frequency_by_service_level": {
+          "checkout-api:ERROR": 9,
+          "checkout-api:INFO": 39
+        }
+      },
+      "anomaly_detection": {
+        "last_anomaly": {
+          "timestamp": "2026-07-10T12:00:30+00:00",
+          "current_count": 8,
+          "previous_count": 3,
+          "affected_service": "checkout-api"
+        },
+        "anomaly_active": true
+      }
+    }
+  }
+}

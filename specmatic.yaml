@@ -1,0 +1,10 @@
+version: 2
+contracts:
+  - filesystem:
+      directory: contracts/openapi
+    provides:
+      - mini-datadog.openapi.json
+
+# Specmatic automatically loads external examples from the adjacent
+# contracts/openapi/mini-datadog.openapi_examples directory for contract tests
+# and mock responses.
