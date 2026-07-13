@@ -1,5 +1,7 @@
 # Mini Datadog
 
+Mini Datadog was built to explore backend observability concepts such as asynchronous log ingestion, real-time metrics aggregation, and anomaly detection. The project was later extended with Specmatic V3 to investigate how executable API contracts and schema resiliency testing improve API reliability.
+
 > A FastAPI-based observability platform with executable API contracts using Specmatic.
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
@@ -92,32 +94,39 @@ React dashboard
 
 See [system_design.md](system_design.md) for scaling strategy, trade-offs, and bottlenecks.
 
+## Contract Testing Results
+
+| Metric | Value |
+|---|---:|
+| Specmatic Configuration | V3 |
+| Schema Resiliency Testing | Enabled |
+| Total Tests Generated | 609 |
+| Passed | 608 |
+| Failed | 1 |
+| API Coverage | 86% |
+
+
+Schema resiliency testing automatically generates positive and negative request variations beyond the provided examples to validate API robustness. This moves the project from example-based validation to hundreds of automatically generated contract scenarios.
+![alt text](image.png)
+
+> API coverage is measured by Specmatic across the implemented operations. The remaining uncovered response is the HTTP 429 path for queue saturation, which is difficult to trigger deterministically because the production queue capacity is intentionally large.
+
 ## Executable API Contracts
 
-This project integrates **Specmatic** to treat the OpenAPI specification as an executable contract instead of static documentation.
+This repository uses Specmatic so the OpenAPI document acts as an executable contract for the FastAPI backend. The contract is exported from the application and verified with provider tests, external examples, and schema resiliency checks.
 
-The integration includes:
+The source contract is stored at [contracts/openapi/mini-datadog.openapi.json](contracts/openapi/mini-datadog.openapi.json).
 
-- Automatic OpenAPI export from FastAPI
-- Provider contract verification
-- Externalized OpenAPI examples
-- Schema resiliency testing
-- API coverage reporting
-- HTML test reports
-- Specmatic V3 configuration
 
-The OpenAPI contract is generated directly from the FastAPI application and exported to:
+## Key Learnings
 
-```text
-contracts/openapi/mini-datadog.openapi.json
-```
-
-This exported contract is then consumed by Specmatic for:
-
-- Provider verification
-- Mock generation
-- API coverage
-- Schema resiliency testing
+- Migrated from Specmatic Config V2 to V3.
+- Integrated executable API contracts into an existing FastAPI project.
+- Used external OpenAPI examples for deterministic contract testing.
+- Enabled schema resiliency testing to generate positive and negative scenarios.
+- Generated HTML coverage reports.
+- Identified implementation gaps using generated contract tests.
+- Automated contract verification through GitHub Actions.
 
 ## API
 
@@ -256,56 +265,116 @@ The React UI includes:
 Polling interval: **3 seconds**.
 
 
-## Contract Testing with Specmatic
+## Contract Testing Workflow
 
-### Export OpenAPI Contract
+The project uses Specmatic V3 to validate the FastAPI service against its exported OpenAPI contract.
 
-```powershell
-python scripts\export_openapi.py
+```mermaid
+flowchart LR
+    A[FastAPI] --> B[Export OpenAPI]
+    B --> C[Specmatic V3]
+    C --> D[External Examples]
+    D --> E[Schema Resiliency]
+    E --> F[Provider Tests]
+    F --> G[HTML Coverage Report]
 ```
 
-Run Specmatic provider tests (backend must be running):
+The workflow begins with the FastAPI application exporting its OpenAPI document, then uses Specmatic V3 together with external examples and schema resiliency checks to exercise the running service. The output is a coverage report and a contract-test report that can be reviewed locally or in CI.
 
-```powershell
-.\scripts\run_specmatic_provider_tests.ps1
+### Local Contract Testing
+
+1. Export the OpenAPI contract:
+   ```powershell
+   python scripts\export_openapi.py
+   ```
+2. Start MongoDB and the FastAPI server.
+3. Run the provider tests with the V3 configuration:
+   ```powershell
+   .\scripts\run_specmatic_provider_tests.ps1
+   ```
+   Or:
+   ```bash
+   java -jar specmatic.jar test --config specmatic.yaml
+   ```
+
+Reports are written to [build/reports/specmatic/test/html/index.html](build/reports/specmatic/test/html/index.html), and the same workflow is exercised in [.github/workflows/specmatic-contract-tests.yml](.github/workflows/specmatic-contract-tests.yml).
+
+## Testing Pipeline
+
+```mermaid
+flowchart TD
+    A[Developer] --> B[Export OpenAPI]
+    B --> C[Run Specmatic]
+    C --> D[Provider Contract Verification]
+    D --> E[Schema Resiliency Tests]
+    E --> F[Coverage Report]
+    F --> G[GitHub Actions]
 ```
 
-Contract files live in `contracts/openapi/`.
+This pipeline validates the contract locally and in CI without changing the runtime architecture.
 
-### Start Specmatic Mock Server
+## Repository Highlights
 
-```powershell
-.\scripts\start_specmatic_mock.ps1
+- FastAPI backend
+- Queue-driven ingestion
+- MongoDB persistence
+- Real-time metrics
+- Specmatic V3
+- Schema resiliency testing
+- GitHub Actions CI
+- External OpenAPI examples
+
+## Troubleshooting Contract Tests
+
+**Test connection timeout:**
+```
+Ensure FastAPI is running and accessible at http://127.0.0.1:8000
+curl http://127.0.0.1:8000/healthz
 ```
 
-The mock server starts on:
-
+**MongoDB connection error:**
 ```
-http://localhost:9000
-```
-
-Configure the frontend to use it by setting:
-
-```text
-VITE_API_BASE_URL=http://localhost:9000
+Start MongoDB: mongod --dbpath=./data
+Check connection: mongosh
 ```
 
-### Schema Resiliency Testing
-
-Specmatic can automatically generate valid request combinations from the OpenAPI schema to validate API behavior beyond manually written examples.
-
-This helps uncover:
-
-- Missing validation
-- Incorrect status codes
-- Contract drift
-- Boundary-condition bugs
-
-Reports are generated under:
-
-```text
-build/reports/specmatic/
+**Queue full (429) not triggered:**
 ```
+By default, the queue holds 10,000 items (INGESTION_QUEUE_MAX_SIZE env var).
+For testing queue saturation, set a smaller size:
+INGESTION_QUEUE_MAX_SIZE=50 python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+**Specmatic not found:**
+```
+Download JAR: 
+curl -L https://github.com/specmatic/specmatic/releases/download/2.50.0/specmatic.jar \
+  -o specmatic.jar
+
+Verify Java is installed:
+java -version
+```
+
+## Test Report Location
+
+After running tests, view the HTML report:
+
+**Local:**
+```
+build/reports/specmatic/test/html/index.html
+```
+
+**CI (GitHub Actions):**
+1. Go to Actions → Latest workflow run
+2. Click "specmatic-reports" artifact
+3. Extract and open `index.html`
+
+The report includes:
+- ✓ Total tests run, passed, failed
+- ✓ Coverage percentage by endpoint
+- ✓ Detailed scenario results
+- ✓ Request/response details for each test
+- ✓ Failure reasons and contract mismatches
 
 ## Development Commands
 
@@ -331,17 +400,13 @@ Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8000/logs?limit=5"
 - Dedupe is best-effort and not shared across instances
 - Anomaly detection is rule-based (no seasonality or statistical modeling yet)
 - Dashboard polls REST endpoints (no WebSocket/SSE streaming)
+- Schema Resiliency tests: 609 total with 1 hard-to-trigger scenario (429 under high load)
 
 ## Future Improvements
 
-- Increase API coverage close to 100%
-- Add more external OpenAPI examples
-- Enable full Schema Resiliency Testing
-- GitHub Actions integration
-- Backward compatibility checks
-- AsyncAPI contracts for Kafka integration
 - Consumer-driven contract testing
-- Kafka for distributed buffering
-- Persistent metrics storage
-- WebSocket/SSE support
+- AsyncAPI support for Kafka
+- Distributed tracing
+- Docker Compose deployment
+- OpenTelemetry
 - ML-based anomaly detection
