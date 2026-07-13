@@ -16,10 +16,10 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd mongosh
+          --health-cmd="echo 'db.runCommand({ ping: 1 })' | mongosh localhost:27017/test --quiet"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - name: Checkout code
@@ -55,13 +55,6 @@ jobs:
           mkdir -p build/tools
           curl -L https://github.com/specmatic/specmatic/releases/download/2.50.0/specmatic.jar \
             -o build/tools/specmatic.jar
-
-      - name: Wait for MongoDB
-        run: |
-          until mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
-            echo "Waiting for MongoDB..."
-            sleep 1
-          done
 
       - name: Start FastAPI server
         run: |
