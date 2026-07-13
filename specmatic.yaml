@@ -1,10 +1,39 @@
-version: 2
-contracts:
-  - filesystem:
-      directory: contracts/openapi
-    provides:
-      - mini-datadog.openapi.json
+version: 3
 
-# Specmatic automatically loads external examples from the adjacent
-# contracts/openapi/mini-datadog.openapi_examples directory for contract tests
-# and mock responses.
+systemUnderTest:
+  service:
+    $ref: "#/components/services/miniDatadogService"
+    runOptions:
+      $ref: "#/components/runOptions/miniDatadogTest"
+
+specmatic:
+  settings:
+    test:
+      schemaResiliencyTests: all
+
+components:
+  sources:
+    localContracts:
+      filesystem:
+        directory: contracts/openapi
+
+  services:
+    miniDatadogService:
+      description: Mini Datadog API (provider)
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/localContracts"
+            specs:
+              - mini-datadog.openapi.json
+
+  runOptions:
+    miniDatadogTest:
+      openapi:
+        type: test
+        baseUrl: "{SPECMATIC_TEST_BASE_URL:http://127.0.0.1:8000}"
+    miniDatadogMock:
+      openapi:
+        type: mock
+        host: localhost
+        port: "{SPECMATIC_MOCK_PORT:9000}"

@@ -1,0 +1,44 @@
+{
+  "http-request": {
+    "path": "/metrics",
+    "method": "GET"
+  },
+  "http-response": {
+    "status": 200,
+    "status-text": "OK",
+    "body": {
+      "system_throughput": {
+        "total_logs_received": 0,
+        "total_logs_processed": 0,
+        "total_logs_failed": 0,
+        "queue_rejections_total": 0,
+        "duplicate_logs_total": 0,
+        "db_failures_total": 0,
+        "worker_restarts_total": 0,
+        "queue_depth": 0,
+        "worker_status": "running"
+      },
+      "error_analytics": {
+        "total_error_count": 0,
+        "current_window_error_count": 0,
+        "previous_window_error_count": 0
+      },
+      "service_level_insights": {
+        "logs_per_service": {},
+        "error_count_per_service": {}
+      },
+      "frequency_tracking": {
+        "frequency_by_service_level": {}
+      },
+      "anomaly_detection": {
+        "last_anomaly": {
+          "timestamp": null,
+          "current_count": 0,
+          "previous_count": 0,
+          "affected_service": null
+        },
+        "anomaly_active": false
+      }
+    }
+  }
+}

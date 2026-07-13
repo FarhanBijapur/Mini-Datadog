@@ -1,0 +1,27 @@
+{
+  "http-request": {
+    "path": "/logs",
+    "method": "POST",
+    "body": {
+      "level": "ERROR",
+      "message": "payment authorization failed"
+    }
+  },
+  "http-response": {
+    "status": 422,
+    "status-text": "Unprocessable Entity",
+    "body": {
+      "detail": [
+        {
+          "type": "missing",
+          "loc": ["body", "service"],
+          "msg": "Field required",
+          "input": {
+            "level": "ERROR",
+            "message": "payment authorization failed"
+          }
+        }
+      ]
+    }
+  }
+}

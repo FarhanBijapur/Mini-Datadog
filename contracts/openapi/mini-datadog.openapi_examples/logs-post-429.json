@@ -1,0 +1,19 @@
+{
+  "http-request": {
+    "path": "/logs",
+    "method": "POST",
+    "body": {
+      "source": "load-test",
+      "service": "checkout-api",
+      "level": "WARN",
+      "message": "queue backpressure test"
+    }
+  },
+  "http-response": {
+    "status": 429,
+    "status-text": "Too Many Requests",
+    "body": {
+      "detail": "Ingestion queue is full. Retry later."
+    }
+  }
+}

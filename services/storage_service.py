@@ -12,7 +12,7 @@ from pymongo.errors import (
 
 from core.config import settings
 from core.database import mongo_manager
-from models.log_model import ProcessedLog
+from models.log_model import LogLevel, ProcessedLog
 
 
 class LogStorageService:
@@ -76,10 +76,14 @@ class LogStorageService:
 
     async def read_recent_logs(self, limit: int = 50) -> list[dict[str, Any]]:
         safe_limit = min(max(limit, 1), 200)
+        valid_levels = [level.value for level in LogLevel]
 
         def operation() -> list[dict[str, Any]]:
             cursor = (
-                mongo_manager.logs_collection.find({}, {"_id": 0})
+                mongo_manager.logs_collection.find(
+                    {"level": {"$in": valid_levels}},
+                    {"_id": 0},
+                )
                 .sort("processed_at", DESCENDING)
                 .limit(safe_limit)
             )

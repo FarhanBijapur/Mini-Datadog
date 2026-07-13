@@ -230,19 +230,12 @@
             "type": "object"
           },
           "level": {
-            "enum": [
-              "DEBUG",
-              "INFO",
-              "WARN",
-              "ERROR"
-            ],
+            "$ref": "#/components/schemas/LogLevel",
             "examples": [
               "INFO",
               "ERROR",
               "WARN"
-            ],
-            "title": "Level",
-            "type": "string"
+            ]
           },
           "message": {
             "title": "Message",
@@ -312,6 +305,16 @@
         ],
         "title": "LogIn",
         "type": "object"
+      },
+      "LogLevel": {
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARN",
+          "ERROR"
+        ],
+        "title": "LogLevel",
+        "type": "string"
       },
       "MetricsResponse": {
         "examples": [
@@ -658,6 +661,90 @@
         "title": "SystemThroughputResponse",
         "type": "object"
       },
+      "ValidationErrorItem": {
+        "additionalProperties": true,
+        "properties": {
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "examples": [
+              [
+                "body",
+                "tags",
+                0
+              ]
+            ],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "examples": [
+              "Field required"
+            ],
+            "title": "Msg",
+            "type": "string"
+          },
+          "type": {
+            "examples": [
+              "missing"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "loc",
+          "msg"
+        ],
+        "title": "ValidationErrorItem",
+        "type": "object"
+      },
+      "ValidationErrorResponse": {
+        "examples": [
+          {
+            "detail": [
+              {
+                "input": {
+                  "level": "ERROR",
+                  "message": "payment authorization failed"
+                },
+                "loc": [
+                  "body",
+                  "service"
+                ],
+                "msg": "Field required",
+                "type": "missing"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationErrorItem"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ValidationErrorResponse",
+        "type": "object"
+      },
       "WorkerStatus": {
         "enum": [
           "running",
@@ -770,6 +857,9 @@
                       "type": "greater_than_equal"
                     }
                   ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
             },
@@ -846,6 +936,9 @@
                       "type": "missing"
                     }
                   ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
             },

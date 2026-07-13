@@ -1,0 +1,20 @@
+{
+  "http-request": {
+    "path": "/logs?limit=0",
+    "method": "GET"
+  },
+  "http-response": {
+    "status": 422,
+    "status-text": "Unprocessable Entity",
+    "body": {
+      "detail": [
+        {
+          "type": "greater_than_equal",
+          "loc": ["query", "limit"],
+          "msg": "Input should be greater than or equal to 1",
+          "input": "0"
+        }
+      ]
+    }
+  }
+}

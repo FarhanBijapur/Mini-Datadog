@@ -1,9 +1,16 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from typing import Annotated, Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARN = "WARN"
+    ERROR = "ERROR"
 
 
 class LogIn(BaseModel):
@@ -27,13 +34,20 @@ class LogIn(BaseModel):
 
     source: str = Field(default="unknown", examples=["checkout-service"])
     service: str = Field(..., examples=["payments"])
-    level: str = Field(
+    level: LogLevel = Field(
         ...,
         examples=["INFO", "ERROR", "WARN"],
-        json_schema_extra={"enum": ["DEBUG", "INFO", "WARN", "ERROR"]},
     )
     message: str
     timestamp: datetime | None = None
+
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def _reject_numeric_timestamp(cls, v: Any) -> Any:
+        if isinstance(v, (int, float)):
+            raise ValueError("numeric timestamps are not accepted; use ISO-8601 strings")
+        return v
+
     attributes: dict[str, Any] = Field(default_factory=dict)
     tags: list[str] = Field(default_factory=list)
     trace_id: str | None = None
@@ -88,6 +102,39 @@ class ErrorResponse(BaseModel):
     )
 
     detail: str
+
+
+class ValidationErrorItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    type: str = Field(examples=["missing"])
+    loc: list[str | int] = Field(examples=[["body", "tags", 0]])
+    msg: str = Field(examples=["Field required"])
+    input: Any = Field(default=None)
+
+
+class ValidationErrorResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "detail": [
+                        {
+                            "type": "missing",
+                            "loc": ["body", "service"],
+                            "msg": "Field required",
+                            "input": {
+                                "level": "ERROR",
+                                "message": "payment authorization failed",
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    )
+
+    detail: list[ValidationErrorItem]
 
 
 class StoredLog(BaseModel):

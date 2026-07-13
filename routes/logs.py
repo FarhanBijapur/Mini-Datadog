@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, HTTPException, Query, status
 import logging
 
 from core.queue import ingestion_queue
-from models.log_model import ErrorResponse, LogAcceptedResponse, LogIn, RecentLogsResponse
+from models.log_model import ErrorResponse, LogAcceptedResponse, LogIn, RecentLogsResponse, ValidationErrorResponse
 from services.metrics_service import metrics_service
 from services.storage_service import storage_service
 from utils.time_utils import utc_now
@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
             },
         },
         422: {
+            "model": ValidationErrorResponse,
             "description": "The `limit` query parameter failed validation.",
             "content": {
                 "application/json": {
@@ -95,6 +96,7 @@ async def recent_logs(limit: int = Query(default=50, ge=1, le=200)) -> dict:
             },
         },
         422: {
+            "model": ValidationErrorResponse,
             "description": "The request body failed FastAPI/Pydantic validation.",
             "content": {
                 "application/json": {

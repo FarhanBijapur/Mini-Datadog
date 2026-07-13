@@ -1,6 +1,14 @@
 # Mini Datadog
 
-Real-time log ingestion and anomaly detection platform with a queue-driven FastAPI backend, MongoDB persistence, in-memory metrics aggregation, and a dark React observability dashboard.
+> A FastAPI-based observability platform with executable API contracts using Specmatic.
+
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-green)
+![Specmatic](https://img.shields.io/badge/Specmatic-Contract%20Testing-orange)
+
+Real-time log ingestion and anomaly detection platform with a queue-driven FastAPI backend, MongoDB persistence, in-memory metrics aggregation, and a React observability dashboard.
 
 ## Features
 
@@ -21,18 +29,23 @@ Real-time log ingestion and anomaly detection platform with a queue-driven FastA
 - Offline/empty states when the API is unavailable (no fake fallback data)
 
 **Tooling**
-- OpenAPI contract export and Specmatic provider tests
-- Demo traffic generator for local demos and anomaly triggers
+- FastAPI-generated OpenAPI contract
+- Specmatic V3 configuration
+- Provider contract testing
+- Externalized OpenAPI examples
+- Schema resiliency testing
+- API coverage reports
+- HTML contract test reports
+- OpenAPI export automation
 
 ## Tech Stack
-
 | Layer | Stack |
 |---|---|
 | API | FastAPI, Uvicorn, Pydantic |
 | Storage | MongoDB, PyMongo |
-| Queue / Workers | `queue.Queue`, asyncio worker, batch inserts |
+| Queue / Workers | queue.Queue, asyncio worker, batch inserts |
 | Frontend | React, Vite, Tailwind CSS, Chart.js, Axios |
-| Contracts | OpenAPI, Specmatic |
+| Contracts & Testing | OpenAPI 3.x, Specmatic V3 |
 
 ## Project Structure
 
@@ -78,6 +91,33 @@ React dashboard
 ```
 
 See [system_design.md](system_design.md) for scaling strategy, trade-offs, and bottlenecks.
+
+## Executable API Contracts
+
+This project integrates **Specmatic** to treat the OpenAPI specification as an executable contract instead of static documentation.
+
+The integration includes:
+
+- Automatic OpenAPI export from FastAPI
+- Provider contract verification
+- Externalized OpenAPI examples
+- Schema resiliency testing
+- API coverage reporting
+- HTML test reports
+- Specmatic V3 configuration
+
+The OpenAPI contract is generated directly from the FastAPI application and exported to:
+
+```text
+contracts/openapi/mini-datadog.openapi.json
+```
+
+This exported contract is then consumed by Specmatic for:
+
+- Provider verification
+- Mock generation
+- API coverage
+- Schema resiliency testing
 
 ## API
 
@@ -134,15 +174,20 @@ Returns a structured observability snapshot:
 
 Interactive docs: `http://127.0.0.1:8000/docs`
 
-## Run Locally
 
+## Run Locally
 ### Prerequisites
 
 - Python 3.11+
 - Node.js 20+
-- MongoDB at `mongodb://localhost:27017`
+- MongoDB
+- Java 17+
 
-Default DB/collection: `mini_datadog.logs`
+Default MongoDB:
+
+```text
+mongodb://localhost:27017
+```
 
 ### Backend
 
@@ -152,12 +197,23 @@ pip install -r requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
+```bash
+cd Mini\ Datadog
+pip3 install -r requirements.txt
+python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
 ### Frontend
 
 ```powershell
-cd "D:\Mini Datadog\frontend"
+cd frontend
 npm install
-npm run dev -- --host 127.0.0.1 --port 5173
+npm run dev
+```
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 Open: `http://127.0.0.1:5173`
@@ -199,9 +255,10 @@ The React UI includes:
 
 Polling interval: **3 seconds**.
 
-## Contract Testing
 
-Export the OpenAPI contract:
+## Contract Testing with Specmatic
+
+### Export OpenAPI Contract
 
 ```powershell
 python scripts\export_openapi.py
@@ -214,6 +271,41 @@ Run Specmatic provider tests (backend must be running):
 ```
 
 Contract files live in `contracts/openapi/`.
+
+### Start Specmatic Mock Server
+
+```powershell
+.\scripts\start_specmatic_mock.ps1
+```
+
+The mock server starts on:
+
+```
+http://localhost:9000
+```
+
+Configure the frontend to use it by setting:
+
+```text
+VITE_API_BASE_URL=http://localhost:9000
+```
+
+### Schema Resiliency Testing
+
+Specmatic can automatically generate valid request combinations from the OpenAPI schema to validate API behavior beyond manually written examples.
+
+This helps uncover:
+
+- Missing validation
+- Incorrect status codes
+- Contract drift
+- Boundary-condition bugs
+
+Reports are generated under:
+
+```text
+build/reports/specmatic/
+```
 
 ## Development Commands
 
@@ -242,9 +334,14 @@ Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8000/logs?limit=5"
 
 ## Future Improvements
 
-- Kafka (or similar) for distributed buffering
-- Horizontal worker scaling and MongoDB sharding
-- Persistent metrics time-series storage
-- WebSocket/SSE live updates
-- Statistical / ML anomaly detection
-- Docker Compose for one-command local setup
+- Increase API coverage close to 100%
+- Add more external OpenAPI examples
+- Enable full Schema Resiliency Testing
+- GitHub Actions integration
+- Backward compatibility checks
+- AsyncAPI contracts for Kafka integration
+- Consumer-driven contract testing
+- Kafka for distributed buffering
+- Persistent metrics storage
+- WebSocket/SSE support
+- ML-based anomaly detection
