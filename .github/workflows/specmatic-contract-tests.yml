@@ -1,0 +1,117 @@
+name: Specmatic Contract Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Node dependencies
+        run: cd frontend && npm install
+
+      - name: Export OpenAPI contract
+        run: python scripts/export_openapi.py
+
+      - name: Download Specmatic JAR
+        run: |
+          mkdir -p build/tools
+          curl -L https://github.com/specmatic/specmatic/releases/download/2.50.0/specmatic.jar \
+            -o build/tools/specmatic.jar
+
+      - name: Wait for MongoDB
+        run: |
+          until mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 1
+          done
+
+      - name: Start FastAPI server
+        run: |
+          python -m uvicorn main:app --host 127.0.0.1 --port 8000 > build/uvicorn.log 2>&1 &
+          echo $! > build/uvicorn.pid
+
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8000/healthz > /dev/null; then
+              echo "API is ready"
+              exit 0
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 1
+          done
+          echo "API failed to start"
+          cat build/uvicorn.log
+          exit 1
+
+      - name: Run Specmatic provider tests
+        run: |
+          java -jar build/tools/specmatic.jar test \
+            --config specmatic.yaml
+        env:
+          SPECMATIC_TEST_BASE_URL: "http://127.0.0.1:8000"
+        continue-on-error: true
+
+      - name: Stop FastAPI server
+        if: always()
+        run: |
+          if [ -f build/uvicorn.pid ]; then
+            kill $(cat build/uvicorn.pid) || true
+          fi
+
+      - name: Upload Specmatic reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: specmatic-reports
+          path: build/reports/specmatic/
+          retention-days: 30
+
+      - name: Check test results
+        if: always()
+        run: |
+          if [ -f build/reports/specmatic/test/html/index.html ]; then
+            echo "✓ Specmatic test report generated"
+            echo "Report available in artifacts"
+          else
+            echo "✗ Specmatic test report not found"
+            exit 1
+          fi

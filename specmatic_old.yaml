@@ -1,0 +1,39 @@
+version: 3
+
+systemUnderTest:
+  service:
+    $ref: "#/components/services/miniDatadogService"
+    runOptions:
+      $ref: "#/components/runOptions/miniDatadogTest"
+
+specmatic:
+  settings:
+    test:
+      schemaResiliencyTests: all
+
+  sources:
+    localContracts:
+      filesystem:
+        directory: contracts/openapi
+
+  services:
+    miniDatadogService:
+      description: Mini Datadog API
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/localContracts"
+            specs:
+              - mini-datadog.openapi.json
+
+  runOptions:
+    miniDatadogTest:
+      openapi:
+        type: test
+        baseUrl: "{SPECMATIC_TEST_BASE_URL:http://127.0.0.1:8000}"
+
+    miniDatadogMock:
+      openapi:
+        type: mock
+        host: localhost
+        port: "{SPECMATIC_MOCK_PORT:9000}"
