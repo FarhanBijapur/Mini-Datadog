@@ -229,23 +229,42 @@ Open: `http://127.0.0.1:5173`
 
 Optional API override:
 
-```text
-VITE_API_BASE_URL=http://127.0.0.1:8000
+Windows (PowerShell):
+```powershell
+$Env:VITE_API_BASE_URL = "http://127.0.0.1:8000"
+```
+
+macOS / Linux:
+```bash
+export VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 ## Demo Workflow
 
 Generate traffic from the CLI:
 
+Windows (PowerShell):
 ```powershell
 cd "D:\Mini Datadog"
 python scripts\generate_demo_traffic.py --count 80 --delay 0.03
 ```
 
+macOS / Linux:
+```bash
+cd "Mini Datadog"
+python3 scripts/generate_demo_traffic.py --count 80 --delay 0.03
+```
+
 Trigger an error spike (may activate anomaly detection):
 
+Windows (PowerShell):
 ```powershell
 python scripts\generate_demo_traffic.py --count 40 --delay 0.02 --spike
+```
+
+macOS / Linux:
+```bash
+python3 scripts/generate_demo_traffic.py --count 40 --delay 0.02 --spike
 ```
 
 Anomaly rule: `current_window_errors > 2 * previous_window_errors` (requires `previous > 0`).
@@ -284,13 +303,23 @@ The workflow begins with the FastAPI application exporting its OpenAPI document,
 ### Local Contract Testing
 
 1. Export the OpenAPI contract:
+   Windows (PowerShell):
    ```powershell
    python scripts\export_openapi.py
    ```
+   macOS / Linux:
+   ```bash
+   python3 scripts/export_openapi.py
+   ```
 2. Start MongoDB and the FastAPI server.
 3. Run the provider tests with the V3 configuration:
+   Windows (PowerShell):
    ```powershell
    .\scripts\run_specmatic_provider_tests.ps1
+   ```
+   macOS / Linux (PowerShell Core):
+   ```bash
+   pwsh ./scripts/run_specmatic_provider_tests.ps1
    ```
    Or:
    ```bash
@@ -378,19 +407,48 @@ The report includes:
 
 ## Development Commands
 
+Windows (PowerShell):
 ```powershell
 # Frontend lint / build
 cd frontend
 npm run lint
 npm run build
+```
 
+macOS / Linux:
+```bash
+# Frontend lint / build
+cd frontend
+npm run lint
+npm run build
+```
+
+Windows (PowerShell):
+```powershell
 # Python syntax check
 cd ..
 python -m py_compile main.py routes\logs.py routes\metrics.py
+```
 
+macOS / Linux:
+```bash
+# Python syntax check
+cd ..
+python3 -m py_compile main.py routes/logs.py routes/metrics.py
+```
+
+Windows (PowerShell):
+```powershell
 # Quick API checks
 Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/metrics
 Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8000/logs?limit=5"
+```
+
+macOS / Linux:
+```bash
+# Quick API checks
+curl -sSf http://127.0.0.1:8000/metrics
+curl -sSf "http://127.0.0.1:8000/logs?limit=5"
 ```
 
 ## Limitations

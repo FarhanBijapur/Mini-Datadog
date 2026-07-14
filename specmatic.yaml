@@ -14,6 +14,7 @@ systemUnderTest:
       openapi:
         type: test
         baseUrl: "${SPECMATIC_TEST_BASE_URL:http://127.0.0.1:8000}"
+        swaggerUrl: "${SPECMATIC_TEST_BASE_URL:http://127.0.0.1:8000}/openapi.json"
 
     data:
       examples:
